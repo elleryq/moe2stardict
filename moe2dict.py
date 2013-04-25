@@ -5,6 +5,8 @@ import sys
 import os
 import codecs
 import json
+from multiprocessing import Pool
+
 try:
     from jinja2 import Environment
 except:
@@ -102,13 +104,18 @@ class DictTAB:
         return "\n".join(self.lines)
 
 
+def generate_dict_entry(entry):
+    definition = generate_definition(entry)
+    return (entry['title'], definition)
+
+
 def convert(fp):
     #the_dict = DictXML()
     the_dict = DictTAB()
     moedict = json.load(fp)
-    for entry in moedict:
-        definition = generate_definition(entry)
-        the_dict.add_article(entry['title'], definition)
+    pool = Pool()
+    for k, d in pool.map(generate_dict_entry, moedict):
+        the_dict.add_article(k, d)
     print(repr(the_dict))
 
 
