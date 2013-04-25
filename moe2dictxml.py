@@ -27,7 +27,7 @@ HTML = """
     {% for h in heteronyms %}
         <div>
             {% if h['bopomofo'] %}
-                <p>ª`­µ¡G{{ h['bopomofo'] }}</p>
+                <p>{{ h['bopomofo'] }}</p>
             {% endif %}
             {% if h['definitions'] %}
               <ol>
@@ -101,7 +101,7 @@ class DictXML:
 def convert(fp):
     xml = DictXML()
     moedict = json.load(fp)
-    for entry in moedict:
+    for entry in moedict[:100]:
         html = generate_html(entry)
         xml.add_article(entry['title'], html)
     print(repr(xml))
