@@ -18,56 +18,43 @@ except:
     sys.exit(-1)
 
 
-HTML = """
-<h1>{{title}}</h1>
+HTML = """{{title}}
 {% if radical %}
-<p> {{ radical }} + {{ non_radical_stroke_count }} = {{ stroke_count }} </p>
+  {{ radical }} + {{ non_radical_stroke_count }} = {{ stroke_count }}
 {% endif %}
 {% if heteronyms %}
-    {% for h in heteronyms %}
-        <div>
-            {% if h['bopomofo'] %}
-                <p>{{ h['bopomofo'] }}</p>
-            {% endif %}
-            {% if h['definitions'] %}
-              <ol>
-              {% for d in h['definitions'] %}
-                <li><p>
-                    <span>{{ d['def'] }}</span>
-                    {% if h['quote'] %}
-                      <span>
-                      {% for q in h['quote'] %}
-                        {{ q }}
-                      {% endfor %}
-                      </span>
-                    {% endif %}
-                    {% if h['example'] %}
-                      <span>
-                      {% for x in h['example'] %}
-                        {{ x }}
-                      {% endfor %}
-                      </span>
-                    {% endif %}
-                    {% if h['link'] %}
-                      <span>
-                      {% for l in h['link'] %}
-                        {{ l }}
-                      {% endfor %}
-                      </span>
-                    {% endif %}
-                </p></li>
-              {% endfor %}
-              </ol>
-            {% endif %}
-        </div>
-    {% endfor %}
+  {% for h in heteronyms %}
+    {% if h['bopomofo'] %}{{ h['bopomofo'] }}{% endif %}
+    {% if h['definitions'] %}
+      {% for d in h['definitions'] %}
+        {{ d['def'] }}
+        {% if h['quote'] %}
+          {% for q in h['quote'] %}
+            {{ q }}
+          {% endfor %}
+        {% endif %}
+        {% if h['example'] %}
+          {% for x in h['example'] %}
+            {{ x }}
+          {% endfor %}
+        {% endif %}
+        {% if h['link'] %}
+          {% for l in h['link'] %}
+            {{ l }}
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  {% endfor %}
 {% endif %}
 """
 
-def generate_html(entry):
+def generate_definition(entry):
     result = ""
     if 'title' in entry:
-        result = Environment().from_string(HTML).render(entry)
+        result = Environment().from_string(HTML).render(
+                entry).replace('\n', '\\n'
+                        ).replace(' ', '')
     return result
 
 
@@ -98,13 +85,31 @@ class DictXML:
                 xml_declaration=True)
 
 
+class DictTAB:
+    def __init__(self):
+        self.lines = []
+
+    def add_article(self, key, definition):
+        try:
+            self.lines.append("{0}\t{1}".format(
+                key.encode('utf-8'), definition.encode('utf-8')))
+        except UnicodeEncodeError, ex:
+            print(ex)
+            print(type(key))
+            print(type(definition))
+
+    def __repr__(self):
+        return "\n".join(self.lines)
+
+
 def convert(fp):
-    xml = DictXML()
+    #the_dict = DictXML()
+    the_dict = DictTAB()
     moedict = json.load(fp)
-    for entry in moedict[:100]:
-        html = generate_html(entry)
-        xml.add_article(entry['title'], html)
-    print(repr(xml))
+    for entry in moedict:
+        definition = generate_definition(entry)
+        the_dict.add_article(entry['title'], definition)
+    print(repr(the_dict))
 
 
 def main(args):
