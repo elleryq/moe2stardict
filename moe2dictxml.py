@@ -20,28 +20,76 @@ except:
 
 HTML = """
 <h1>{{title}}</h1>
+{% if radical %}
+<p> {{ radical }} + {{ non_radical_stroke_count }} = {{ stroke_count }} </p>
+{% endif %}
+{% if heteronyms %}
+    {% for h in heteronyms %}
+        <div>
+            {% if h['bopomofo'] %}
+                <p>ª`­µ¡G{{ h['bopomofo'] }}</p>
+            {% endif %}
+            {% if h['definitions'] %}
+              <ol>
+              {% for d in h['definitions'] %}
+                <li><p>
+                    <span>{{ d['def'] }}</span>
+                    {% if h['quote'] %}
+                      <span>
+                      {% for q in h['quote'] %}
+                        {{ q }}
+                      {% endfor %}
+                      </span>
+                    {% endif %}
+                    {% if h['example'] %}
+                      <span>
+                      {% for x in h['example'] %}
+                        {{ x }}
+                      {% endfor %}
+                      </span>
+                    {% endif %}
+                    {% if h['link'] %}
+                      <span>
+                      {% for l in h['link'] %}
+                        {{ l }}
+                      {% endfor %}
+                      </span>
+                    {% endif %}
+                </p></li>
+              {% endfor %}
+              </ol>
+            {% endif %}
+        </div>
+    {% endfor %}
+{% endif %}
 """
 
 def generate_html(entry):
     result = ""
     if 'title' in entry:
-        #print(entry['title'])
-        result = Environment().from_string(HTML).render( {
-            'title': entry['title'],
-            })
+        result = Environment().from_string(HTML).render(entry)
     return result
 
 
 class DictXML:
     def __init__(self):
         self.dic = etree.Element("stardict")
-        self.dic.append(etree.Element("info"))
+        info = etree.SubElement(self.dic, "info")
+        etree.SubElement(info, "version").text = "0.1"
+        etree.SubElement(info, "bookname").text = "moedict"
+        etree.SubElement(info, "author").text = ""
+        etree.SubElement(info, "email").text = ""
+        etree.SubElement(info, "website").text = ""
+        etree.SubElement(info, "description").text = ""
+        etree.SubElement(info, "date").text = "2013.4.25" #TODO
+        etree.SubElement(info, "dicttype").text = ""
 
     def add_article(self, key, definition):
         article_e = etree.SubElement(self.dic, "article")
         key_e = etree.SubElement(article_e, "key")
         key_e.text = key
         definition_e = etree.SubElement(article_e, "definition")
+        definition_e.attrib['type']='h'
         definition_e.text = etree.CDATA(definition)
 
     def __repr__(self):
@@ -55,7 +103,7 @@ def convert(fp):
     moedict = json.load(fp)
     for entry in moedict:
         html = generate_html(entry)
-        xml.add_article('1', html)
+        xml.add_article(entry['title'], html)
     print(repr(xml))
 
 
