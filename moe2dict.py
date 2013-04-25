@@ -75,7 +75,7 @@ class DictXML:
     def __init__(self):
         self.dic = etree.Element("stardict")
         info = etree.SubElement(self.dic, "info")
-        etree.SubElement(info, "version").text = "0.1"
+        etree.SubElement(info, "version").text = "2.4.2"
         etree.SubElement(info, "bookname").text = "moedict"
         etree.SubElement(info, "author").text = ""
         etree.SubElement(info, "email").text = ""
