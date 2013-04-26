@@ -114,7 +114,8 @@ def convert(fp):
     the_dict = DictTAB()
     moedict = json.load(fp)
     pool = Pool()
-    for k, d in pool.map(generate_dict_entry, moedict):
+    for k, d in pool.map(generate_dict_entry, [
+            e for e in moedict if not e['title'].startswith('{[')]):
         the_dict.add_article(k, d)
     print(repr(the_dict))
 
