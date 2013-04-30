@@ -2,7 +2,10 @@
 all: moedict.ifo
 
 # tools
-json2unicode.pl:
+sym.txt:
+	wget https://github.com/g0v/moedict-epub/raw/master/sym.txt -O $@
+
+json2unicode.pl: sym.txt
 	wget https://github.com/g0v/moedict-epub/raw/master/json2unicode.pl -O $@
 
 # Parsed data.
@@ -19,7 +22,7 @@ dict-revised.sqlite3:
 
 # Convert to unicode.
 dict-revised.unicode.json: json2unicode.pl dict-revised.json
-	perl json2unicode.pl > $@
+	perl ./json2unicode.pl > $@
 
 # stardict part.
 moedict.tab.txt: dict-revised.unicode.json
