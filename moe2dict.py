@@ -3,7 +3,6 @@
 """ Convert MOE dictionary data to stardict dict xml"""
 import sys
 import os
-import json
 from dictf import DictTAB
 from multiprocessing import Pool
 
@@ -59,8 +58,8 @@ def generate_dict_entry(entry):
     return (entry['title'], definition)
 
 
-def convert(fp):
-    #the_dict = DictXML()
+def convert_from_json(fp):
+    import json
     the_dict = DictTAB()
     moedict = json.load(fp)
     pool = Pool()
@@ -70,17 +69,136 @@ def convert(fp):
     print(repr(the_dict))
 
 
+class Definitions:
+    def __init__(self, row):
+        self.row = row
+
+    def __getattr__(self, name):
+        if name == 'id':
+            return self.row[0]
+        elif name == 'idx':
+            return self.row[2]
+        elif name == 'type':
+            return self.row[3].encode('utf-8')
+        elif name == 'def':
+            return self.row[4].encode('utf-8')
+        elif name == 'example':
+            return self.row[5].encode('utf-8')
+        elif name == 'quote':
+            return self.row[6].encode('utf-8')
+        elif name == 'synonyms':
+            return self.row[7].encode('utf-8')
+        elif name == 'antonyms':
+            return self.row[8].encode('utf-8')
+        elif name == 'link':
+            return self.row[9].encode('utf-8')
+        elif name == 'source':
+            return self.row[10].encode('utf-8')
+        return None
+
+    @staticmethod
+    def get(conn, heteronyms_id):
+        c = conn.cursor()
+        rows = c.execute("select * from definitions where heteronym_id=?", (
+            heteronyms_id,))
+        results = []
+        for row in rows:
+            results.append(Definitions(row))
+        return results
+
+
+class Heteronyms:
+    def __init__(self, conn, row):
+        self.conn = conn
+        self.row = row
+
+    def __getattr__(self, name):
+        if name == 'id':
+            return self.row[0]
+        elif name == 'idx':
+            return self.row[2]
+        elif name == 'bopomofo':
+            return self.row[3].encode('utf-8')
+        elif name == 'bopomofo2':
+            return self.row[4].encode('utf-8')
+        elif name == 'pinyin':
+            return self.row[5].encode('utf-8')
+        elif name == 'definitions':
+            return Definitions.get(self.conn, self.row[1])
+        return None
+
+    @staticmethod
+    def get(conn, entry_id):
+        c = conn.cursor()
+        rows = c.execute("select * from heteronyms where entry_id=?", (
+            entry_id,))
+        results = []
+        for row in rows:
+            results.append(Heteronyms(conn, row))
+        return results
+
+
+class Entry:
+    def __init__(self, conn, row):
+        self.conn = conn
+        self.row = row
+
+    def __getattr__(self, name):
+        if name == 'id':
+            return self.row[0]
+        elif name == 'title':
+            return self.row[1].encode('utf-8')
+        elif name == 'radical':
+            return self.row[2].encode('utf-8')
+        elif name == 'stroke_count':
+            return self.row[3]
+        elif name == 'non_radical_stroke_count':
+            return self.row[4]
+        elif name == 'dict_id':
+            return self.row[5]
+        elif name == 'heteronyms':
+            return Heteronyms.get(self.conn, self.row[0])
+        return None
+
+    def __repr__(self):
+        return "{0} {1}".format(self.id, self.title)
+
+    @staticmethod
+    def all(fn):
+        import sqlite3
+        conn = sqlite3.connect(fn)
+        c = conn.cursor()
+
+        results = []
+        for entry in c.execute(
+                "select * from entries where title not like '{[%'"):
+            results.append(Entry(conn, entry))
+
+        return results
+
+
+def convert_from_sqlite3(fn):
+    import json
+    entries = Entry.all(fn)
+    #print(len(entries))
+    #for entry in entries:
+    #    print(repr(entry))
+    #print(json.dumps(entries))
+    print("Need implement")
+
+
 def main(args):
     if len(args) == 0:
         print('Need filename')
         sys.exit(-1)
 
     if args[0] == '-':
-        #convert(codecs.getreader('utf-8')(sys.stdin))
-        convert(sys.stdin)
+        #convert(sys.stdin)
+        print("Don't allow read from stdin.")
     else:
         # check whether file is existed.
-        convert(open(args[0]))
+        # convert(open(args[0]))
+        convert_from_sqlite3(args[0])
 
 
 if __name__ == "__main__":

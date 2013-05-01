@@ -28,7 +28,7 @@ dict-revised.unicode.json: json2unicode.pl dict-revised.json
 	perl ./json2unicode.pl > $@
 
 # stardict part.
-moedict.tab.txt: dict-revised.unicode.json
+moedict.tab.txt: dict-revised.sqlite3
 	dpkg -l python-jinja2 || sudo apt-get install python-jinja2
 	python ./moe2dict.py $^ > $@
 
