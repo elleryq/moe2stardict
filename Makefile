@@ -26,6 +26,7 @@ dict-revised.unicode.json: json2unicode.pl dict-revised.json
 
 # stardict part.
 moedict.tab.txt: dict-revised.unicode.json
+	dpkg -l python-jinja2 || sudo apt-get install python-jinja2
 	python ./moe2dict.py $^ > $@
 
 moedict.xml: dict-revised.unicode.json
@@ -36,8 +37,8 @@ moedict.xml: dict-revised.unicode.json
 #	/usr/lib/stardict-tools/stardict-text2bin $^ $@
 
 moedict.ifo: moedict.tab.txt
-	/usr/lib/stardict-tools/tabfile $^
-	@echo "use 'make install' to install generated dictionary."
+	dpkg -l stardict-tools || sudo apt-get install stardict-tools
+	/usr/lib/stardict-tools/tabfile $^ && echo "use 'make install' to install generated dictionary."
 
 clean:
 	rm -f moedict.idx moedict.ifo moedict.dict.dz moedict.xml dict-revised.unicode.json
