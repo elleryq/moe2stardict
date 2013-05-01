@@ -17,8 +17,11 @@ dict-revised.json: dict-revised.json.bz2
 	# The below line fail, need to investigate
 	#wget https://github.com/g0v/moedict-data/raw/master/dict-revised.json
 
-dict-revised.sqlite3:
-	echo "Need implement."
+dict-revised.sqlite3.bz2:
+	wget http://kcwu.csie.org/~kcwu/moedict/dict-revised.sqlite3.bz2 -O $@
+
+dict-revised.sqlite3: dict-revised.sqlite3.bz2
+	bunzip2 -k $^
 
 # Convert to unicode.
 dict-revised.unicode.json: json2unicode.pl dict-revised.json
