@@ -138,30 +138,17 @@ class Heteronyms:
         return results
 
 
-class Entry:
+class Entry(object):
     def __init__(self, conn, row):
         self.conn = conn
         self.row = row
-
-    def __getattr__(self, name):
-        if name == 'id':
-            return self.row[0]
-        elif name == 'title':
-            return self.row[1].encode('utf-8')
-        elif name == 'radical':
-            return self.row[2].encode('utf-8')
-        elif name == 'stroke_count':
-            return self.row[3]
-        elif name == 'non_radical_stroke_count':
-            return self.row[4]
-        elif name == 'dict_id':
-            return self.row[5]
-        elif name == 'heteronyms':
-            return Heteronyms.get(self.conn, self.row[0])
-        return None
-
-    def __repr__(self):
-        return "{0} {1}".format(self.id, self.title)
+        self.id = row[0]
+        self.title = row[1]
+        self.radical = row[2]
+        self.stroke_count = row[3]
+        self.non_radical_stroke_count = row[4]
+        self.dict_id = row[5]
+        self.heteronyms = Heteronyms.get(conn, self.id)
 
     @staticmethod
     def all(fn):
@@ -180,7 +167,8 @@ class Entry:
 def convert_from_sqlite3(fn):
     import json
     entries = Entry.all(fn)
-    #print(len(entries))
+    print(len(entries))
+    print(entries[0:10])
     #for entry in entries:
     #    print(repr(entry))
     #print(json.dumps(entries))
