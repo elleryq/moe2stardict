@@ -14,34 +14,24 @@ except:
 
 
 HTML = """{{title}}
-{% if radical %}
-  {{ radical }} + {{ non_radical_stroke_count }} = {{ stroke_count }}
-{% endif %}
-{% if heteronyms %}
-  {% for h in heteronyms %}
+{% if radical %}{{ radical }} + {{ non_radical_stroke_count }} = {{ stroke_count }}{% endif %}
+{% if heteronyms %}{% for h in heteronyms %}
     {% if h['bopomofo'] %}{{ h['bopomofo'] }}{% endif %}
     {% if h['definitions'] %}
       {% for d in h['definitions'] %}
         {{ d['def'] }}
         {% if h['quote'] %}
-          {% for q in h['quote'] %}
-            {{ q }}
-          {% endfor %}
+          {% for q in h['quote'] %}{{ q }}{% endfor %}
         {% endif %}
         {% if h['example'] %}
-          {% for x in h['example'] %}
-            {{ x }}
-          {% endfor %}
+          {% for x in h['example'] %}{{ x }}{% endfor %}
         {% endif %}
         {% if h['link'] %}
-          {% for l in h['link'] %}
-            {{ l }}
-          {% endfor %}
+          {% for l in h['link'] %}{{ l }}{% endfor %}
         {% endif %}
       {% endfor %}
     {% endif %}
-  {% endfor %}
-{% endif %}
+  {% endfor %}{% endif %}
 """
 
 
