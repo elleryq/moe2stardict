@@ -58,121 +58,68 @@ def generate_dict_entry(entry):
     return (entry['title'], definition)
 
 
-def convert_from_json(fp):
-    import json
+def convert(moedict):
     the_dict = DictTAB()
-    moedict = json.load(fp)
     pool = Pool()
     for k, d in pool.map(generate_dict_entry, [
             e for e in moedict if not e['title'].startswith('{[')]):
         the_dict.add_article(k, d)
+    return the_dict
+
+
+def convert_from_json(fp):
+    import json
+    moedict = json.load(fp)
+    the_dict = convert(moedict)
     print(repr(the_dict))
 
 
-class Definitions:
-    def __init__(self, row):
-        self.row = row
-
-    def __getattr__(self, name):
-        if name == 'id':
-            return self.row[0]
-        elif name == 'idx':
-            return self.row[2]
-        elif name == 'type':
-            return self.row[3].encode('utf-8')
-        elif name == 'def':
-            return self.row[4].encode('utf-8')
-        elif name == 'example':
-            return self.row[5].encode('utf-8')
-        elif name == 'quote':
-            return self.row[6].encode('utf-8')
-        elif name == 'synonyms':
-            return self.row[7].encode('utf-8')
-        elif name == 'antonyms':
-            return self.row[8].encode('utf-8')
-        elif name == 'link':
-            return self.row[9].encode('utf-8')
-        elif name == 'source':
-            return self.row[10].encode('utf-8')
-        return None
-
-    @staticmethod
-    def get(conn, heteronyms_id):
-        c = conn.cursor()
-        rows = c.execute("select * from definitions where heteronym_id=?", (
-            heteronyms_id,))
-        results = []
-        for row in rows:
-            results.append(Definitions(row))
-        return results
+def get_definitions(conn, heteronyms_id):
+    c = conn.cursor()
+    rows = c.execute("select * from definitions where heteronym_id=?", (
+        heteronyms_id,))
+    results = []
+    for row in rows:
+        definition = dict(zip(['id', 'heteronym_id', 'idx', 'type', 'def', 'example', 'quote', 'synonyms', 'antonyms', 'link', 'source'],
+            row))
+        results.append(definition)
+    return results
 
 
-class Heteronyms:
-    def __init__(self, conn, row):
-        self.conn = conn
-        self.row = row
-
-    def __getattr__(self, name):
-        if name == 'id':
-            return self.row[0]
-        elif name == 'idx':
-            return self.row[2]
-        elif name == 'bopomofo':
-            return self.row[3].encode('utf-8')
-        elif name == 'bopomofo2':
-            return self.row[4].encode('utf-8')
-        elif name == 'pinyin':
-            return self.row[5].encode('utf-8')
-        elif name == 'definitions':
-            return Definitions.get(self.conn, self.row[1])
-        return None
-
-    @staticmethod
-    def get(conn, entry_id):
-        c = conn.cursor()
-        rows = c.execute("select * from heteronyms where entry_id=?", (
-            entry_id,))
-        results = []
-        for row in rows:
-            results.append(Heteronyms(conn, row))
-        return results
+def get_heteronyms(conn, entry_id):
+    c = conn.cursor()
+    rows = c.execute("select * from heteronyms where entry_id=?", (
+        entry_id,))
+    results = []
+    for row in rows:
+        h = dict(zip(['id', 'entry_id', 'idx', 'bopomofo', 'bopomofo2', 'pinyin'],
+            row))
+        h['definitions'] = get_definitions(conn, row[1])
+        results.append(h)
+    return results
 
 
-class Entry(object):
-    def __init__(self, conn, row):
-        self.conn = conn
-        self.row = row
-        self.id = row[0]
-        self.title = row[1]
-        self.radical = row[2]
-        self.stroke_count = row[3]
-        self.non_radical_stroke_count = row[4]
-        self.dict_id = row[5]
-        self.heteronyms = Heteronyms.get(conn, self.id)
+def get_entries(fn):
+    import sqlite3
+    conn = sqlite3.connect(fn)
+    c = conn.cursor()
 
-    @staticmethod
-    def all(fn):
-        import sqlite3
-        conn = sqlite3.connect(fn)
-        c = conn.cursor()
+    results = []
+    for row in c.execute(
+            "select * from entries where title not like '{[%'"):
+        entry = dict(zip(
+            ['id', 'title', 'radical', 'stroke_count', 'non_radical_stroke_count', 'dict_id', 'heteronyms'], row))
+        entry['heteronyms'] = get_heteronyms(conn, row[0])
+        results.append(entry)
 
-        results = []
-        for entry in c.execute(
-                "select * from entries where title not like '{[%'"):
-            results.append(Entry(conn, entry))
-
-        return results
+    return results
 
 
 def convert_from_sqlite3(fn):
     import json
-    entries = Entry.all(fn)
-    print(len(entries))
-    print(entries[0:10])
-    #for entry in entries:
-    #    print(repr(entry))
-    #print(json.dumps(entries))
-    print("Need implement")
+    entries = get_entries(fn)
+    the_dict = convert(entries)
+    print(repr(the_dict))
 
 
 def main(args):
@@ -181,11 +128,10 @@ def main(args):
         sys.exit(-1)
 
     if args[0] == '-':
-        #convert(sys.stdin)
         print("Don't allow read from stdin.")
     else:
         # check whether file is existed.
-        # convert(open(args[0]))
+        # convert_json(open(args[0]))
         convert_from_sqlite3(args[0])
 
 
