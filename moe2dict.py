@@ -84,7 +84,7 @@ def get_heteronyms(conn, entry_id):
     for row in rows:
         h = dict(zip(['id', 'entry_id', 'idx', 'bopomofo', 'bopomofo2', 'pinyin'],
             row))
-        h['definitions'] = get_definitions(conn, row[1])
+        h['definitions'] = get_definitions(conn, row[0])
         results.append(h)
     return results
 
