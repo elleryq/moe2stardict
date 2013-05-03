@@ -39,9 +39,14 @@ moedict.xml: dict-revised.unicode.json
 #moedict.ifo: moedict.xml
 #	/usr/lib/stardict-tools/stardict-text2bin $^ $@
 
-moedict.ifo: moedict.tab.txt
+moedict.tab.ifo: moedict.tab.txt
 	dpkg -l stardict-tools || sudo apt-get install stardict-tools
 	/usr/lib/stardict-tools/tabfile $^ && echo "use 'make install' to install generated dictionary."
+
+moedict.tar.gz: moedict.tab.ifo moedict.tab.idx moedict.tab.dict.dz
+	tar czf $@ $^
+
+tarball: moedict.tar.gz
 
 clean:
 	rm -f moedict.idx moedict.ifo moedict.dict.dz moedict.xml dict-revised.unicode.json
