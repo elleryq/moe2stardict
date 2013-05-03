@@ -42,7 +42,7 @@ moedict.tar.gz: moedict.tab.ifo moedict.tab.idx moedict.tab.dict.dz
 tarball: moedict.tar.gz
 
 clean:
-	rm -f moedict.tab.idx moedict.tab.ifo moedict.tab.dict.dz dict-revised.unicode.json
+	rm -f moedict.tab.idx moedict.tab.ifo moedict.tab.dict.dz moedict.tab.txt dict-revised.unicode.json
 
 install: moedict.tab.ifo
 	mkdir -p ~/.stardict/dic/stardict-moedict-2.4.2
