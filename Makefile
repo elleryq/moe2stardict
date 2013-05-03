@@ -46,9 +46,9 @@ moedict.ifo: moedict.tab.txt
 clean:
 	rm -f moedict.idx moedict.ifo moedict.dict.dz moedict.xml dict-revised.unicode.json
 
-install: moedict.ifo
+install: moedict.tab.ifo
 	mkdir -p ~/.stardict/dic/stardict-moedict-2.4.2
-	cp moedict.ifo moedict.idx moedict.dict.dz ~/.stardict/dic/stardict-moedict-2.4.2
+	cp moedict.tab.ifo moedict.tab.idx moedict.tab.dict.dz ~/.stardict/dic/stardict-moedict-2.4.2
 
 uninstall:
 	rm -rf ~/.stardict/dic/stardict-moedict-2.4.2
