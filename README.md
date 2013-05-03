@@ -5,7 +5,8 @@ Convert moe dictionary to stardict format.
 
 Usage
 =====
-1. python moe2dictxml.py dict-revised.json
-2. cat dict-revised.json | python moe2dictxml.py -
-3. curl https://github.com/g0v/moedict-data/raw/master/dict-revised.json | python moe2dictxml.py -
+After you clone repository, just type make && make install.
+The dictionary will be generated and installed.
 
+You can also download the dictionary file from http://goo.gl/CHWWO
+After you downloaded the dictionary files, extract to /home/ellerytsai/.stardict/dic/stardict-moedict-2.4.2/
