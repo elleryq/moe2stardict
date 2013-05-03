@@ -1,5 +1,5 @@
 
-all: moedict.ifo
+all: moedict.tab.ifo
 
 # tools
 sym.txt:
@@ -32,13 +32,6 @@ moedict.tab.txt: dict-revised.sqlite3
 	dpkg -l python-jinja2 || sudo apt-get install python-jinja2
 	python ./moe2dict.py $^ > $@
 
-moedict.xml: dict-revised.unicode.json
-	python moe2stardict/moe2dictxml.py $^ > $@
-
-# xml format is not working.
-#moedict.ifo: moedict.xml
-#	/usr/lib/stardict-tools/stardict-text2bin $^ $@
-
 moedict.tab.ifo: moedict.tab.txt
 	dpkg -l stardict-tools || sudo apt-get install stardict-tools
 	/usr/lib/stardict-tools/tabfile $^ && echo "use 'make install' to install generated dictionary."
@@ -49,7 +42,7 @@ moedict.tar.gz: moedict.tab.ifo moedict.tab.idx moedict.tab.dict.dz
 tarball: moedict.tar.gz
 
 clean:
-	rm -f moedict.idx moedict.ifo moedict.dict.dz moedict.xml dict-revised.unicode.json
+	rm -f moedict.tab.idx moedict.tab.ifo moedict.tab.dict.dz dict-revised.unicode.json
 
 install: moedict.tab.ifo
 	mkdir -p ~/.stardict/dic/stardict-moedict-2.4.2
