@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 """ Convert MOE dictionary data to stardict dict xml"""
 import sys
-import os
 from dictf import DictTAB
 from multiprocessing import Pool
+import re
+MORE_THAN_ONE_NEWLINE=re.compile('\n+')
 
 try:
     from jinja2 import Environment
@@ -35,11 +36,17 @@ HTML = """{{title}}
 """
 
 
+def remove_more_than_one_newline(s):
+    return MORE_THAN_ONE_NEWLINE.sub('\n', s)
+
+
 def generate_definition(entry):
     result = ""
     if 'title' in entry:
         result = Environment().from_string(HTML).render(
-            entry).replace('\n', '\\n').replace(' ', '')
+            entry).strip()
+        result = remove_more_than_one_newline(result).replace(
+            '\n', '\\n').replace(' ', '')
     return result
 
 
@@ -51,8 +58,7 @@ def generate_dict_entry(entry):
 def convert(moedict):
     the_dict = DictTAB()
     pool = Pool()
-    for k, d in pool.map(generate_dict_entry, [
-            e for e in moedict if not e['title'].startswith('{[')]):
+    for k, d in pool.map(generate_dict_entry, moedict):
         the_dict.add_article(k, d)
     return the_dict
 
