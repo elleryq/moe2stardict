@@ -5,7 +5,7 @@ import sys
 from dictf import DictTAB
 from multiprocessing import Pool
 import re
-MORE_THAN_ONE_NEWLINE=re.compile('\n+')
+MORE_THAN_ONE_NEWLINE=re.compile(u'\n+')
 
 try:
     from jinja2 import Environment
@@ -38,15 +38,15 @@ TEMPLATE = Environment().from_string(HTML)
 
 
 def remove_more_than_one_newline(s):
-    return MORE_THAN_ONE_NEWLINE.sub('\n', s)
+    return MORE_THAN_ONE_NEWLINE.sub(u'\n', s)
 
 
 def generate_definition(entry):
     result = ""
     if 'title' in entry:
-        result = TEMPLATE.render(entry).strip()
-        result = remove_more_than_one_newline(result).replace(
-            '\n', '\\n').replace(' ', '')
+        content = TEMPLATE.render(entry).strip().replace(u' ', u'')
+        result = remove_more_than_one_newline(content).replace(
+            u'\n', u'\\n')
     return result
 
 
