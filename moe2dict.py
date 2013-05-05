@@ -34,6 +34,7 @@ HTML = """{{title}}
     {% endif %}
   {% endfor %}{% endif %}
 """
+TEMPLATE = Environment().from_string(HTML)
 
 
 def remove_more_than_one_newline(s):
@@ -43,8 +44,7 @@ def remove_more_than_one_newline(s):
 def generate_definition(entry):
     result = ""
     if 'title' in entry:
-        result = Environment().from_string(HTML).render(
-            entry).strip()
+        result = TEMPLATE.render(entry).strip()
         result = remove_more_than_one_newline(result).replace(
             '\n', '\\n').replace(' ', '')
     return result
@@ -53,21 +53,6 @@ def generate_definition(entry):
 def generate_dict_entry(entry):
     definition = generate_definition(entry)
     return (entry['title'], definition)
-
-
-def convert(moedict):
-    the_dict = DictTAB()
-    pool = Pool()
-    for k, d in pool.map(generate_dict_entry, moedict):
-        the_dict.add_article(k, d)
-    return the_dict
-
-
-def convert_from_json(fp):
-    import json
-    moedict = json.load(fp)
-    the_dict = convert(moedict)
-    print(repr(the_dict))
 
 
 def get_definitions(conn, heteronyms_id):
@@ -111,10 +96,37 @@ def get_entries(fn):
     return results
 
 
+def convert(moedict, parallel=True):
+    the_dict = DictTAB()
+    if parallel:
+        pool = Pool()
+        for k, d in pool.map(generate_dict_entry, moedict):
+            the_dict.add_article(k, d)
+    else:
+        for k, d in map(generate_dict_entry, moedict):
+            the_dict.add_article(k, d)
+    return the_dict
+
+
+def convert_from_json(fp):
+    import json
+    moedict = json.load(fp)
+    the_dict = convert(moedict)
+    print(repr(the_dict))
+
+
 def convert_from_sqlite3(fn):
     import json
     entries = get_entries(fn)
+    # real	0m15.853s
+    # user	0m27.222s
+    # sys	0m2.300s
     the_dict = convert(entries)
+    # for profling.
+    # real	0m15.367s
+    # user	0m14.873s
+    # sys	0m0.456s
+    # the_dict = convert(entries, parallel=False)
     print(repr(the_dict))
 
 
