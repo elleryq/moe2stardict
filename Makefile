@@ -37,7 +37,9 @@ moedict.tab.ifo: moedict.tab.txt
 	/usr/lib/stardict-tools/tabfile $^ && echo "use 'make install' to install generated dictionary."
 
 moedict.tar.gz: moedict.tab.ifo moedict.tab.idx moedict.tab.dict.dz
-	tar czf $@ $^
+	mkdir stardict-moedict-2.4.2 && cp $^ stardict-moedict-2.4.2
+	tar czf $@ stardict-moedict-2.4.2
+	rm -rf stardict-moedict-2.4.2
 
 tarball: moedict.tar.gz
 
