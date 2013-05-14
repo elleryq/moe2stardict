@@ -30,7 +30,7 @@ dict-revised.unicode.json: json2unicode.pl dict-revised.json
 # stardict part.
 moedict.tab.txt: dict-revised.sqlite3
 	dpkg -l python-jinja2 || sudo apt-get install python-jinja2
-	python ./moe2dict.py $^ > $@
+	python ./moe2dict.py -i $^ -o $@
 
 moedict.tab.ifo: moedict.tab.txt
 	dpkg -l stardict-tools || sudo apt-get install stardict-tools

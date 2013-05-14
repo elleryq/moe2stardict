@@ -4,6 +4,11 @@
 import sys
 from dictf import DictTAB
 from multiprocessing import Pool
+import argparse
+
+ARG_SQLITE3 = 1
+ARG_JSON = 2
+
 import re
 MORE_THAN_ONE_NEWLINE=re.compile(u'\n+')
 
@@ -87,7 +92,7 @@ def get_entries(fn):
 
     results = []
     for row in c.execute(
-            "select * from entries where title not like '{[%'"):
+            "select * from entries where title not like '%{[%'"):
         entry = dict(zip(
             ['id', 'title', 'radical', 'stroke_count', 'non_radical_stroke_count', 'dict_id', 'heteronyms'], row))
         entry['heteronyms'] = get_heteronyms(conn, row[0])
@@ -108,15 +113,15 @@ def convert(moedict, parallel=True):
     return the_dict
 
 
-def convert_from_json(fp):
+def convert_from_json(fn, output_fd):
     import json
-    moedict = json.load(fp)
-    the_dict = convert(moedict)
-    print(repr(the_dict))
+    moedict = json.load(open(fn, "rt"))
+    the_dict = convert([entry for entry in moedict if '{[' not in entry['title']])
+    output_fd.write(repr(the_dict))
+    output_fd.write('\n')
 
 
-def convert_from_sqlite3(fn):
-    import json
+def convert_from_sqlite3(fn, output_fd):
     entries = get_entries(fn)
     # real	0m15.853s
     # user	0m27.222s
@@ -127,21 +132,30 @@ def convert_from_sqlite3(fn):
     # user	0m14.873s
     # sys	0m0.456s
     # the_dict = convert(entries, parallel=False)
-    print(repr(the_dict))
+    output_fd.write(repr(the_dict))
+    output_fd.write('\n')
 
 
 def main(args):
-    if len(args) == 0:
-        print('Need filename')
-        sys.exit(-1)
-
-    if args[0] == '-':
-        print("Don't allow read from stdin.")
-    else:
-        # check whether file is existed.
-        # convert_json(open(args[0]))
-        convert_from_sqlite3(args[0])
+    if args.source_type == ARG_SQLITE3:
+        convert_from_sqlite3(args.input_fn, args.output_fd)
+    elif args.source_type == ARG_JSON:
+        convert_from_json(args.input_fn, args.output_fd)
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser.add_argument("-i", "--input", dest="input_fn",
+            help="source file", metavar="SOURCE_FILE",
+            required=True)
+    parser.add_argument("-t", "--type", dest="source_type",
+            help="source file type (1:sqlite3, 2:json)", metavar="TYPE",
+            type=int,
+            choices=xrange(1, 3),
+            default=ARG_SQLITE3)
+    parser.add_argument("-o", "--output", dest="output_fd",
+            help="write tabfile to FILE", metavar="FILE",
+            type=argparse.FileType('wt'), required=True)
+    args = parser.parse_args()
+
+    main(args)
