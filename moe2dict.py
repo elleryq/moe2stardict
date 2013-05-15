@@ -10,7 +10,7 @@ ARG_SQLITE3 = 1
 ARG_JSON = 2
 
 import re
-MORE_THAN_ONE_NEWLINE=re.compile(u'\n+')
+MORE_THAN_ONE_NEWLINE = re.compile(u'\n+')
 
 try:
     from jinja2 import Environment
@@ -66,7 +66,9 @@ def get_definitions(conn, heteronyms_id):
         heteronyms_id,))
     results = []
     for row in rows:
-        definition = dict(zip(['id', 'heteronym_id', 'idx', 'type', 'def', 'example', 'quote', 'synonyms', 'antonyms', 'link', 'source'],
+        definition = dict(zip([
+            'id', 'heteronym_id', 'idx', 'type', 'def', 'example',
+            'quote', 'synonyms', 'antonyms', 'link', 'source'],
             row))
         results.append(definition)
     return results
@@ -78,8 +80,8 @@ def get_heteronyms(conn, entry_id):
         entry_id,))
     results = []
     for row in rows:
-        h = dict(zip(['id', 'entry_id', 'idx', 'bopomofo', 'bopomofo2', 'pinyin'],
-            row))
+        h = dict(zip(['id', 'entry_id', 'idx', 'bopomofo', 'bopomofo2',
+            'pinyin'], row))
         h['definitions'] = get_definitions(conn, row[0])
         results.append(h)
     return results
@@ -94,7 +96,8 @@ def get_entries(fn):
     for row in c.execute(
             "select * from entries where title not like '%{[%'"):
         entry = dict(zip(
-            ['id', 'title', 'radical', 'stroke_count', 'non_radical_stroke_count', 'dict_id', 'heteronyms'], row))
+            ['id', 'title', 'radical', 'stroke_count',
+             'non_radical_stroke_count', 'dict_id', 'heteronyms'], row))
         entry['heteronyms'] = get_heteronyms(conn, row[0])
         results.append(entry)
 
@@ -144,18 +147,20 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser = argparse.ArgumentParser(
+            description='Convert moedict to stardict dict tab file.')
     parser.add_argument("-i", "--input", dest="input_fn",
-            help="source file", metavar="SOURCE_FILE",
-            required=True)
+                        help="source file", metavar="SOURCE_FILE",
+                        required=True)
     parser.add_argument("-t", "--type", dest="source_type",
-            help="source file type (1:sqlite3, 2:json)", metavar="TYPE",
-            type=int,
-            choices=xrange(1, 3),
-            default=ARG_SQLITE3)
+                        help="source file type (1:sqlite3, 2:json)",
+                        metavar="TYPE",
+                        type=int,
+                        choices=xrange(1, 3),
+                        default=ARG_SQLITE3)
     parser.add_argument("-o", "--output", dest="output_fd",
-            help="write tabfile to FILE", metavar="FILE",
-            type=argparse.FileType('wt'), required=True)
+                        help="write tabfile to FILE", metavar="FILE",
+                        type=argparse.FileType('wt'), required=True)
     args = parser.parse_args()
 
     main(args)
